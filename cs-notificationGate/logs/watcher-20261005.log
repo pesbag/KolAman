@@ -1,0 +1,19 @@
+2026-10-05 16:46:04.012 +03:00 [INF] enter to file in path:C:\Users\bgdps\OneDrive\שולחן העבודה\FinalProjects\KolAman\alert-simulator\alerts\mossad
+2026-10-05 16:46:04.012 +03:00 [INF] enter to file in path:C:\Users\bgdps\OneDrive\שולחן העבודה\FinalProjects\KolAman\alert-simulator\alerts\shabak
+2026-10-05 16:46:04.012 +03:00 [INF] enter to file in path:C:\Users\bgdps\OneDrive\שולחן העבודה\FinalProjects\KolAman\alert-simulator\alerts\aman
+2026-10-05 16:46:04.012 +03:00 [INF] enter to file in path:C:\Users\bgdps\OneDrive\שולחן העבודה\FinalProjects\KolAman\alert-simulator\alerts\pikud-haoref
+2026-10-05 16:46:05.222 +03:00 [INF] enter to OnCreated method
+2026-10-05 16:46:05.228 +03:00 [INF] enter to SendToKafakaAsync function
+2026-10-05 16:46:05.288 +03:00 [INF] send message to kafka: Confluent.Kafka.Message`2[Confluent.Kafka.Null,System.String]
+2026-10-05 16:46:05.514 +03:00 [INF] enter to OnCreated method
+2026-10-05 16:46:05.516 +03:00 [INF] enter to SendToKafakaAsync function
+2026-10-05 16:46:05.539 +03:00 [INF] send message to kafka: Confluent.Kafka.Message`2[Confluent.Kafka.Null,System.String]
+2026-10-05 16:46:06.885 +03:00 [INF] enter to OnCreated method
+2026-10-05 16:46:06.888 +03:00 [INF] enter to SendToKafakaAsync function
+2026-10-05 16:46:06.905 +03:00 [INF] send message to kafka: Confluent.Kafka.Message`2[Confluent.Kafka.Null,System.String]
+2026-10-05 16:46:10.162 +03:00 [INF] enter to OnCreated method
+2026-10-05 16:46:10.164 +03:00 [INF] enter to SendToKafakaAsync function
+2026-10-05 16:46:10.185 +03:00 [INF] send message to kafka: Confluent.Kafka.Message`2[Confluent.Kafka.Null,System.String]
+2026-10-05 16:46:11.076 +03:00 [INF] enter to OnCreated method
+2026-10-05 16:46:11.079 +03:00 [INF] enter to SendToKafakaAsync function
+2026-10-05 16:46:11.090 +03:00 [INF] send message to kafka: Confluent.Kafka.Message`2[Confluent.Kafka.Null,System.String]

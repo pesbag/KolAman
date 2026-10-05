@@ -1,30 +1,35 @@
-﻿using System;
+﻿using Confluent.Kafka;
+using cs_notificationGate.Services;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using cs_notificationGate.Services;
-using Microsoft.Extensions.Logging;
 namespace cs_notificationGate.FileSystemWatcherProgram;
 
 public class FileSystemWatcherProgram : System.ComponentModel.Component
 {
     private readonly string _path;
     private readonly ILogger<FileSystemWatcherProgram> _logger;
-    //KafkaProducerService _kafka;
+    private readonly KafkaProducerService _kafkaProducer;
     public FileSystemWatcherProgram(string path
-        //, ILogger<FileSystemWatcherProgram> logger
+        , KafkaProducerService kafkaProducer
+        , ILogger<FileSystemWatcherProgram> logger
         )
     {
         _path = path;
-        //_logger = logger;
-        //_kafka = kafka;
+        _kafkaProducer = kafkaProducer;
+        _logger = logger;
     }
     public void CheckForChangesInFile(string path) {
         using var watcher = new FileSystemWatcher(path);
         Console.WriteLine($"enter to file in path:{path}");
+        _logger.LogInformation($"enter to file in path:{path}");
         watcher.NotifyFilter = NotifyFilters.Attributes
                                          | NotifyFilters.CreationTime
                                          | NotifyFilters.DirectoryName
@@ -36,20 +41,20 @@ public class FileSystemWatcherProgram : System.ComponentModel.Component
         watcher.Changed += OnCreated;
         watcher.Created += OnCreated;
         watcher.Error += OnError;
-
+     
         watcher.Filter = "*.ready";
         watcher.IncludeSubdirectories = true;
         watcher.EnableRaisingEvents = true;
         Console.WriteLine("Press enter to exit");
         Console.ReadLine();
     }
-    private static void OnCreated(object sender, FileSystemEventArgs e)
+    public void OnCreated(object sender, FileSystemEventArgs e)
     {
+        _logger.LogInformation("enter to OnCreated method");
         string value = $"Created: {e.FullPath}";
         Console.WriteLine(value);
-        Console.WriteLine(GetJsonContent(e.FullPath));
-        //string messageContent = GetJsonContent(value);
-        //Console.WriteLine(messageContent);
+        string messageContent=GetJsonContent(e.FullPath);
+        SendToKafakaAsync(messageContent);
     }
     private static void OnError(object sender, ErrorEventArgs e) =>
            PrintException(e.GetException());
@@ -65,6 +70,17 @@ public class FileSystemWatcherProgram : System.ComponentModel.Component
             PrintException(ex.InnerException);
         }
     }
+    public async void SendToKafakaAsync(string messageToSend)
+    {
+        _logger.LogInformation("enter to SendToKafakaAsync function");
+        var message = new Message<Null, string>
+        {
+            Value = JsonSerializer.Serialize(messageToSend)
+        };
+        await _kafkaProducer.SendToKafkaAsync("rawData",message);
+        _logger.LogInformation($"send message to kafka: {message}");
+    }
+
     private static string GetJsonContent(string pathToFolder)
     {
         string directoryPath = Path.GetDirectoryName(pathToFolder);
