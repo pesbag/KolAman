@@ -5,15 +5,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-
+using cs_notificationGate.Services;
+using Microsoft.Extensions.Logging;
 namespace cs_notificationGate.FileSystemWatcherProgram;
 
 public class FileSystemWatcherProgram : System.ComponentModel.Component
 {
     private readonly string _path;
-    public FileSystemWatcherProgram(string path)
+    private readonly ILogger<FileSystemWatcherProgram> _logger;
+    //KafkaProducerService _kafka;
+    public FileSystemWatcherProgram(string path
+        //, ILogger<FileSystemWatcherProgram> logger
+        )
     {
         _path = path;
+        //_logger = logger;
+        //_kafka = kafka;
     }
     public void CheckForChangesInFile(string path) {
         using var watcher = new FileSystemWatcher(path);
@@ -26,29 +33,23 @@ public class FileSystemWatcherProgram : System.ComponentModel.Component
                                          | NotifyFilters.LastWrite
                                          | NotifyFilters.Security
                                          | NotifyFilters.Size;
-        watcher.Changed += OnChanged;
+        watcher.Changed += OnCreated;
         watcher.Created += OnCreated;
         watcher.Error += OnError;
 
-        //watcher.Filter = "*.json";
+        watcher.Filter = "*.ready";
         watcher.IncludeSubdirectories = true;
         watcher.EnableRaisingEvents = true;
         Console.WriteLine("Press enter to exit");
         Console.ReadLine();
     }
-    private static void OnChanged(object sender, FileSystemEventArgs e)
-    {
-        Console.WriteLine("check for changes");
-        if (e.ChangeType != WatcherChangeTypes.Changed)
-        {
-            return;
-        }
-        Console.WriteLine($"Changed: {e.FullPath}");
-    }
     private static void OnCreated(object sender, FileSystemEventArgs e)
     {
         string value = $"Created: {e.FullPath}";
         Console.WriteLine(value);
+        Console.WriteLine(GetJsonContent(e.FullPath));
+        //string messageContent = GetJsonContent(value);
+        //Console.WriteLine(messageContent);
     }
     private static void OnError(object sender, ErrorEventArgs e) =>
            PrintException(e.GetException());
@@ -63,6 +64,21 @@ public class FileSystemWatcherProgram : System.ComponentModel.Component
             Console.WriteLine();
             PrintException(ex.InnerException);
         }
+    }
+    private static string GetJsonContent(string pathToFolder)
+    {
+        string directoryPath = Path.GetDirectoryName(pathToFolder);
+        if (string.IsNullOrWhiteSpace(directoryPath))
+        {
+            Console.WriteLine($"error to get directory path: {directoryPath}");
+        }
+        string[] filePath = Directory.GetFiles(directoryPath, "*.json");
+        if (filePath.Length == 0)
+        {
+            Console.WriteLine($"no json files was found in {filePath}");
+        }
+        string jsonFileFullPath = filePath[0];
+        return File.ReadAllText(jsonFileFullPath);
     }
 }
 
