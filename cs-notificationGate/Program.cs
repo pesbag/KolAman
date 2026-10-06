@@ -1,7 +1,9 @@
 ﻿using cs_notificationGate.FileSystemWatcherProgram;
 using cs_notificationGate.Services;
+using Elastic.Serilog.Sinks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -10,12 +12,13 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .WriteTo.Console()
     .WriteTo.File(
-        path: "logs/watcher-.log",
+        path: "logs/watcher:.log",
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 7,
         fileSizeLimitBytes: 10_000_000,
         rollOnFileSizeLimit: true
     )
+    //.WriteTo.Elasticsearch(new ElasticsearchSink(new Uri("http://localhost:9200"))
     .CreateLogger();
 
 
@@ -39,7 +42,10 @@ var watcherMossad = new FileSystemWatcherProgram(watchPathMossad, kafkaProducer,
 var watcherShabak = new FileSystemWatcherProgram(watchPathShabak, kafkaProducer, logger);
 var watcherAman = new FileSystemWatcherProgram(watchPathAman, kafkaProducer, logger);
 var watcherPikudHaoref = new FileSystemWatcherProgram(watchPathPikudHaoref, kafkaProducer, logger);
-
+//watcherMossad.InternalBufferSize = 65536;
+//watcherShabak.InternalBufferSize = 65536;
+//watcherAman.InternalBufferSize = 65536;
+//watcherPikudHaoref.InternalBufferSize = 65536;
 Task.Run(() => watcherMossad.CheckForChangesInFile(watchPathMossad));
 Task.Run(() => watcherShabak.CheckForChangesInFile(watchPathShabak));
 Task.Run(() => watcherAman.CheckForChangesInFile(watchPathAman));

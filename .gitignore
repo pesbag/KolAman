@@ -1,0 +1,9 @@
+.idea/
+.venv/
+___pycache__
+.vs/
+bin/
+obj/
+alert-simulator
+alerts/
+.simulator.lock

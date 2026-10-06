@@ -1,6 +1,8 @@
 import json
 import sys
+import asyncio
 import os
+import pika
 import asyncio
 from rstream import Producer
 from json import JSONDecodeError
@@ -32,8 +34,11 @@ consumerConf = {
 consumer = Consumer(consumerConf)
 I = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
+
 running = True
-def raw_consumer(consumer, topics):
+async def raw_consumer(consumer, topics):
     logging.info("enter to raw consumer function")
     try:
         consumer.subscribe(topics)
@@ -79,8 +84,14 @@ def raw_consumer(consumer, topics):
                     print(data_dict)
                     geographical_region=geographical_classification(data_dict)
                     print(f"geographical_classification:{geographical_region}\n")
-                    send_to_rabbit_queue(geographical_region, data_dict)
+                    data=json.dumps(data_dict)
+                    channel.queue_declare(queue=geographical_region, durable=True, arguments={'x-queue-type': 'quorum'})
+                    channel.basic_publish(exchange='',
+                                          routing_key=geographical_region,
+                                          body=data)
+                    # await send_to_rabbit_queue_async(geographical_region, data)
                     print(f"send message to queue:{geographical_region}")
+                    # logging.INFO
 
                 except JSONDecodeError:
                     print("error occurred:", JSONDecodeError)
@@ -90,14 +101,18 @@ def raw_consumer(consumer, topics):
         print("closing consumer")
         consumer.close()
         I.close()
-async def send_to_rabbit_queue(stream_name,message,stream_retention=5000000000):
-    async with Producer(
-            host="localhost",
-            username="guest",
-            password="guest",
-    ) as producer:
-        await producer.create_stream(stream_name, exists_ok=True, arguments={"MaxLengthBytes": stream_retention})
-        await producer.send(stream=stream_name, message=message)
+        connection.close()
+
+# async def send_to_rabbit_queue_async(stream_name,message,stream_retention=5000000000):
+#      print("enter to rabbit")
+#      async with Producer(
+#             host="localhost",
+#             username="guest",
+#             password="guest",
+#     ) as producer:
+#         await producer.create_stream(stream_name, exists_ok=True, arguments={"MaxLengthBytes": stream_retention})
+#         await producer.send(stream=stream_name, message=message)
+
 
 def geographical_classification(data_dict):
     lon=float(data_dict["lon"])
@@ -167,5 +182,8 @@ def get_region_with_geopandas(file_path, lon, lat):
     except FileExistsError:
         print(f"error: file in path {file_path} was not exists")
 
+async def main():
+    await raw_consumer(consumer, [topic])
+
 if __name__ == "__main__":
-    raw_consumer(consumer, [topic])
+    asyncio.run(main())
