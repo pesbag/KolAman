@@ -85,7 +85,7 @@ async def raw_consumer(consumer, topics):
                     geographical_region=geographical_classification(data_dict)
                     print(f"geographical_classification:{geographical_region}\n")
                     data=json.dumps(data_dict)
-                    channel.queue_declare(queue=geographical_region, durable=True, arguments={'x-queue-type': 'quorum'})
+                    channel.queue_declare(queue=geographical_region, durable=True, arguments={'x-queue-type': ''})
                     channel.basic_publish(exchange='',
                                           routing_key=geographical_region,
                                           body=data)
