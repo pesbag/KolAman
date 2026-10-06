@@ -23,13 +23,25 @@ public class AlertModel
     [Required(AllowEmptyStrings = false)]
     [JsonPropertyName("content")]
     public string Content { get; set; } = string.Empty;
-    public string Priority { get; set; } = string.Empty;
-    //UNCLASSIFIED / RESTRICTED / SECRET / TOP_SECRET`
+    [JsonPropertyName("priority")]
     [Required(AllowEmptyStrings =false)]
+    public string Priority { get; set; } = string.Empty;
+    [Required(AllowEmptyStrings =false)]
+    [JsonPropertyName("classification")]
     [RegularExpression("^(UNCLASSIFIED|RESTRICTED|SECRET|TOP_SECRET)^")]
     public string Classification { get; set; } = string.Empty;
+    [Required]
+    [Range(-90,90)]
+    [JsonPropertyName("lat")]
     public double Lat { get; set; }
+    [Required]
+    [JsonPropertyName("lon")]
+    [Range(-180,180)]
     public double Lon { get; set; }
+    [Required]
+    [JsonPropertyName("timestamp")]
     public DateTime TimeStamp { get; set; }
+    [JsonPropertyName("status")]
+    [Required(AllowEmptyStrings =false)]
     public string Status { get; set; } = "WAITING";
 }
