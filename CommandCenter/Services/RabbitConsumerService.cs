@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using CommandCenter.Models;
 namespace CommandCenter.Services;
 
 public class RabbitConsumerService:BackgroundService
@@ -30,24 +32,49 @@ public class RabbitConsumerService:BackgroundService
         var channel = await connection.CreateChannelAsync();
         foreach (var region in _commandCenters)
         {
-            //await channel.QueueDeclareAsync(
-            //    queue: region,
-            //    durable: true,
-            //    exclusive: false,
-            //    autoDelete: false);
             var consumer = new AsyncEventingBasicConsumer(channel);
 
-            consumer.ReceivedAsync += async (model, ea) =>
+            try
             {
-                var body = ea.Body.ToArray();
-                var message = Encoding.UTF8.GetString(body);
-                _logger.LogInformation($"message number {counter} received: {message}");
-                Console.WriteLine($"message number {counter} received: {message}");
-                await _mongo.SaveToMongoAsync(message);
-                counter += 1;
-                await Task.CompletedTask;
-            };
+                consumer.ReceivedAsync += async (model, ea) =>
+                {
+                    var body = ea.Body.ToArray();
+                    var message = Encoding.UTF8.GetString(body);
 
+                    var Event = JsonSerializer.Deserialize<AlertModel>(message);
+
+                    _logger.LogInformation($"message number {counter} received: {message}");
+                    Console.WriteLine($"message number {counter} received: {message}");
+                    if (region == "CENTER")
+                    {
+                    await _mongo.SaveToMongoCenterAsync(message);
+                    counter += 1;
+                    await Task.CompletedTask;
+                    }
+                    else if(region == "OVERSEAS")
+                    {
+                        await _mongo.SaveToMongoOverseasAsync(message);
+                        counter += 1;
+                        await Task.CompletedTask;
+                    }
+                    else if(region== "NORTH")
+                    {
+                        await _mongo.SaveToMongoNorthAsync(message);
+                        counter += 1;
+                        await Task.CompletedTask;
+                    }
+                    else
+                    {
+                        await _mongo.SaveToMongoSouthAsync(message);
+                        counter += 1;
+                        await Task.CompletedTask;
+                    }
+                };
+            }
+            catch(JsonException ex)
+            {
+                Console.WriteLine($"error: {ex.Message}");
+            }
             await channel.BasicConsumeAsync(region, autoAck: true, consumer: consumer);
         }
         await Task.Delay(Timeout.Infinite, stoppingToken);
