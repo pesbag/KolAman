@@ -85,13 +85,13 @@ async def raw_consumer(consumer, topics):
                     geographical_region = geographical_classification(data_dict)
                     print(f"geographical_classification:{geographical_region}\n")
                     data = json.dumps(data_dict)
-                    print("before")
+                    # print("before")
                     channel.queue_declare(queue=geographical_region, durable=True, arguments={'x-queue-type': 'quorum'})
-                    print("middle")
+                    # print("middle")
                     channel.basic_publish(exchange='',
                                           routing_key=geographical_region,
                                           body=data)
-                    print("after")
+                    # print("after")
                     # await send_to_rabbit_queue_async(geographical_region, data)
                     print(f"send message to queue:{geographical_region}")
                     # logging.INFO
@@ -170,6 +170,11 @@ def validate_warning(data):
     if not (-180 <= float(data["lon"]) <= 180):
         print("invalid lon in data")
         return False
+
+    if data["status"]is None or (isinstance(data["status"], str) and data["status"].strip() == ""):
+        print("invalid status in data")
+        return False
+
     return True
 
 

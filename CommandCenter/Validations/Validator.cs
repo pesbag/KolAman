@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace CommandCenter.Validations;
 
-internal class Validator
+public class Validator
 {
 }

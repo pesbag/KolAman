@@ -45,25 +45,25 @@ public class RabbitConsumerService:BackgroundService
 
                     _logger.LogInformation($"message number {counter} received: {message}");
                     Console.WriteLine($"message number {counter} received: {message}");
-                    if (region == "CENTER")
+                    if (region == "CENTER" && Event!.Priority!="LOW")
                     {
                     await _mongo.SaveToMongoCenterAsync(message);
                     counter += 1;
                     await Task.CompletedTask;
                     }
-                    else if(region == "OVERSEAS")
+                    else if(region == "OVERSEAS" && Event!.Priority != "LOW")
                     {
                         await _mongo.SaveToMongoOverseasAsync(message);
                         counter += 1;
                         await Task.CompletedTask;
                     }
-                    else if(region== "NORTH")
+                    else if(region== "NORTH" && Event!.Priority != "LOW")
                     {
                         await _mongo.SaveToMongoNorthAsync(message);
                         counter += 1;
                         await Task.CompletedTask;
                     }
-                    else
+                    else if(Event!.Priority != "LOW")
                     {
                         await _mongo.SaveToMongoSouthAsync(message);
                         counter += 1;
